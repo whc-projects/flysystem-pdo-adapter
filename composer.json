@@ -1,11 +1,11 @@
 {
-    "name": "integral/flysystem-pdo-adapter",
+    "name": "whc-projects/flysystem-pdo-adapter",
     "description": "PDO adapter for Flysystem file abstraction layer",
     "license": "MIT",
     "authors": [
         {
-            "name": "Pawel Wiaderny",
-            "email": "pawel.wiaderny@gmail.com"
+            "name": "hossein abaei",
+            "email": "hossein142001@gmail.com"
         }
     ],
     "require": {
@@ -16,7 +16,7 @@
     },
     "autoload": {
         "psr-4": {
-            "Integral\\Flysystem\\Adapter\\": "src/"
+            "whc-projects\\Flysystem\\Adapter\\": "src/"
         }
     }
 }

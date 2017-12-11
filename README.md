@@ -16,7 +16,7 @@ composer require integral/flysystem-pdo-adapter
 
 At the beginning you have to create a table that will be used to store files.
 
-SQL table schema examples for MySQL, SQLite and PostgreSQL are presented below.
+SQL table schema examples for MySQL and SQLite are presented below.
 
 **MySQL**
 ```sql
@@ -30,37 +30,6 @@ CREATE TABLE files (
   timestamp int(11) NOT NULL DEFAULT 0,
   PRIMARY KEY (id),
   UNIQUE KEY path_unique (path)
-);
-```
-
-**SQLite**
-```sql
-CREATE TABLE files (
-    id INTEGER PRIMARY KEY,
-    path TEXT NOT NULL UNIQUE,
-    type TEXT NOT NULL,
-    contents BLOB,
-    size INTEGER NOT NULL DEFAULT 0,
-    mimetype TEXT,
-    timestamp INTEGER NOT NULL DEFAULT 0
-)
-```
-
-**PostgreSQL**
-```sql
-CREATE TABLE public.files (
-  id serial NOT NULL,
-  path varchar(255) NOT NULL,
-  type varchar(4) NOT NULL,
-  contents bytea,
-  size integer NOT NULL DEFAULT 0,
-  mimetype varchar(127),
-  "timestamp" integer NOT NULL DEFAULT 0,
-  is_compressed boolean NOT NULL DEFAULT true,
-  update_ts timestamp(0) with time zone DEFAULT NOW(),
-  CONSTRAINT files_pkey PRIMARY KEY (id),
-  CONSTRAINT type_check CHECK (type='dir' or type='file'),
-  CONSTRAINT path_unique UNIQUE (path)
 );
 ```
 

@@ -2,6 +2,8 @@
 
 namespace Integral\Flysystem\Adapter;
 
+use Integral\Flysystem\models;
+
 use League\Flysystem\Adapter\Polyfill\NotSupportingVisibilityTrait;
 use League\Flysystem\AdapterInterface;
 use League\Flysystem\Config;
@@ -29,96 +31,95 @@ class PDOAdapter implements AdapterInterface
      * PDOAdapter constructor.
      *
      * @param PDO    $pdo
-     * @param string $tableName
      */
-    public function __construct(PDO $pdo, $tableName)
+    public function __construct(PDO $pdo)
     {
         $this->pdo = $pdo;
 
-        if (!preg_match('/^[a-zA-Z_][a-zA-Z0-9_.]*$/', $tableName)) {
-            throw new \InvalidArgumentException('Invalid table name');
-        }
-
-        $this->table = $tableName;
+        $this->table = '{{%file_storage}}' ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function write($path, $contents, Config $config)
+    public function write($path, $contents)
     {
-        $statement = $this->pdo->prepare("INSERT INTO {$this->table} (path, contents, size, type, mimetype, timestamp) VALUES(:path, :contents, :size, :type, :mimetype, :timestamp)");
-
         $size = strlen($contents);
         $type = 'file';
         $mimetype = Util::guessMimeType($path, $contents);
         $timestamp = time();
 
-        $statement->bindParam(':path', $path, PDO::PARAM_STR);
-        $statement->bindParam(':contents', $contents, PDO::PARAM_LOB);
-        $statement->bindParam(':size', $size, PDO::PARAM_INT);
-        $statement->bindParam(':type', $type, PDO::PARAM_STR);
-        $statement->bindParam(':mimetype', $mimetype, PDO::PARAM_STR);
-        $statement->bindParam(':timestamp', $timestamp, PDO::PARAM_INT);
+		$model = new FileStorage;
+		$model->path = $path;
+		$model->contents = $contents;
+		$model->size = $size;
+		$model->type = $type;
+		$model->mimetype = $mimetype;
+		$model->timestamp = $timestamp;
 
-        return $statement->execute() ? compact('path', 'contents', 'size', 'type', 'mimetype', 'timestamp') : false;
+        return $model->save() ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function writeStream($path, $resource, Config $config)
+    public function writeStream($path, $resource)
     {
-        return $this->write($path, stream_get_contents($resource), $config);
+        return $this->write($path, stream_get_contents($resource) );
     }
 
     /**
      * {@inheritdoc}
      */
-    public function update($path, $contents, Config $config)
+    public function update($path, $contents)
     {
-        $statement = $this->pdo->prepare("UPDATE {$this->table} SET contents=:newcontents, mimetype=:mimetype, size=:size WHERE path=:path");
-
-        $size = strlen($contents);
+		
+		$size = strlen($contents);
         $mimetype = Util::guessMimeType($path, $contents);
-
-        $statement->bindParam(':size', $size, PDO::PARAM_INT);
-        $statement->bindParam(':mimetype', $mimetype, PDO::PARAM_STR);
-        $statement->bindParam(':newcontents', $contents, PDO::PARAM_LOB);
-        $statement->bindParam(':path', $path, PDO::PARAM_STR);
-
-        return $statement->execute() ? compact('path', 'contents', 'size', 'mimetype') : false;
+        
+		$model = FileStorage::find()->andWhere(['path'=>$path])->one();
+		
+		$model->contents = $contents;
+		$model->size = $size;
+		$model->mimetype = $mimetype;
+		
+        return $model->save() ;
     }
 
     /**
      * {@inheritdoc}
      */
-    public function updateStream($path, $resource, Config $config)
+    public function updateStream($path, $resource)
     {
-        return $this->update($path, stream_get_contents($resource), $config);
+        return $this->update($path, stream_get_contents($resource) );
     }
 
     /**
      * {@inheritdoc}
      */
     public function rename($path, $newpath)
-    {
+    {	
+	/*
         $statement = $this->pdo->prepare("SELECT type FROM {$this->table} WHERE path=:path");
         $statement->bindParam(':path', $path, PDO::PARAM_STR);
-
-        if ($statement->execute()) {
-            $object = $statement->fetch(PDO::FETCH_ASSOC);
-
-            if ($object['type'] === 'dir') {
+	*/
+		$model = FileStorage::find()->andWhere(['path'=>$path])->one();
+		
+		//$model->contents = $contents;
+		//$model->size = $size;
+		//$model->mimetype = $mimetype;
+        //return $model->save() ;
+		
+		if ($model->type === 'dir') {
                 $dirContents = $this->listContents($path, true);
-
-                $statement = $this->pdo->prepare("UPDATE {$this->table} SET path=:newpath WHERE path=:path");
+				
+                //$statement = $this->pdo->prepare("UPDATE {$this->table} SET path=:newpath WHERE path=:path");
 
                 $pathLength = strlen($path);
 
-                $statement->bindParam(':path', $currentObjectPath, PDO::PARAM_STR);
-                $statement->bindParam(':newpath', $newObjectPath, PDO::PARAM_STR);
-
+                //$statement->bindParam(':path', $currentObjectPath, PDO::PARAM_STR);
+                //$statement->bindParam(':newpath', $newObjectPath, PDO::PARAM_STR);
+				$model->path = $contents;
                 foreach ($dirContents as $object) {
                     $currentObjectPath = $object['path'];
                     $newObjectPath = $newpath . substr($currentObjectPath, $pathLength);
@@ -126,7 +127,7 @@ class PDOAdapter implements AdapterInterface
                     $statement->execute();
                 }
             }
-        }
+		
 
         $statement = $this->pdo->prepare("UPDATE {$this->table} SET path=:newpath WHERE path=:path");
 
@@ -205,7 +206,7 @@ class PDOAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function createDir($dirname, Config $config)
+    public function createDir($dirname)
     {
         $statement = $this->pdo->prepare("INSERT INTO {$this->table} (path, type, timestamp) VALUES(:path, :type, :timestamp)");
 
