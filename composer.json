@@ -1,22 +1,22 @@
 {
-    "name": "whc-projects/flysystem-pdo-adapter",
-    "description": "PDO adapter for Flysystem file abstraction layer",
-    "license": "MIT",
-    "authors": [
-        {
-            "name": "hossein abaei",
-            "email": "hossein142001@gmail.com"
-        }
-    ],
-    "require": {
-        "league/flysystem": "^1.0"
-    },
-    "require-dev": {
-        "phpunit/phpunit": "~4.8"
-    },
-    "autoload": {
-        "psr-4": {
-            "whc-projects\\Flysystem\\Adapter\\": "src/"
-        }
+  "name": "whc-projects/flysystem-pdo-adapter",
+  "description": "PDO adapter for Flysystem file abstraction layer",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "hossein abaei",
+      "email": "hossein142001@gmail.com"
     }
+  ],
+  "require": {
+    "league/flysystem": "^1.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "~4.8"
+  },
+  "autoload": {
+    "psr-4": {
+      "whc\\Flysystem\\Adapter\\": "src/"
+    }
+  }
 }

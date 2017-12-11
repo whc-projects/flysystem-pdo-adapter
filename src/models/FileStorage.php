@@ -1,6 +1,6 @@
 <?php
 
-namespace hossein142001\Flysystem\models;
+namespace whc\Flysystem\Adapter\models;
 
 use Yii;
 use yii\db\ActiveRecord;
@@ -20,7 +20,7 @@ use yii\db\ActiveRecord;
  * @property User $createdUser
  * @property User $modifiedUser
  */
-class BaseFileStorage extends ActiveRecord
+class FileStorage extends ActiveRecord
 {
     /**
      * @inheritdoc
@@ -44,22 +44,6 @@ class BaseFileStorage extends ActiveRecord
             [['type'], 'string', 'max' => 15],
             [['mimetype'], 'string', 'max' => 127],
             [['path'], 'unique']
-        ];
-    }
-
-    /**
-     * @inheritdoc
-     */
-    public function attributeLabels()
-    {
-        return [
-            'id' => Yii::t( 'ID'),
-            'path' => Yii::t('Path'),
-            'type' => Yii::t('Type'),
-            'contents' => Yii::t('Contents'),
-            'size' => Yii::t('Size'),
-            'mimetype' => Yii::t('Mimetype'),
-            'timestamp' => Yii::t('Timestamp')
         ];
     }
 }
