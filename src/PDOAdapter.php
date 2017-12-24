@@ -56,8 +56,9 @@ class PDOAdapter implements AdapterInterface
         $model->type = $type;
         $model->mimetype = $mimetype;
         $model->timestamp = $timestamp;
+        $model->save();
 
-        return $model->save();
+        return $model;
     }
 
     /**
@@ -82,8 +83,9 @@ class PDOAdapter implements AdapterInterface
         $model->contents = $contents;
         $model->size = $size;
         $model->mimetype = $mimetype;
+        $model->save();
 
-        return $model->save();
+        return $model;
     }
 
     /**
@@ -91,7 +93,7 @@ class PDOAdapter implements AdapterInterface
      */
     public function updateStream($path, $resource, Config $config)
     {
-        return $this->update($path, stream_get_contents($resource));
+        return $this->update($path, stream_get_contents($resource), $config);
     }
 
     /**
@@ -117,7 +119,9 @@ class PDOAdapter implements AdapterInterface
         }
 
         $model->path = $newpath;
-        return $model->save();
+        $model->save();
+
+        return $model;
     }
 
     /**
@@ -129,8 +133,6 @@ class PDOAdapter implements AdapterInterface
 
 
         if (!empty($model)) {
-            $model;
-
             $newModel = new FileStorage();
             $newModel->path = $newpath;
             $newModel->contents = $model->contents;
@@ -138,8 +140,9 @@ class PDOAdapter implements AdapterInterface
             $newModel->type = $model->type;
             $newModel->mimetype = $model->mimetype;
             $newModel->timestamp = $model->timestamp;
+            $newModel->save();
 
-            return $newModel->save();
+            return $newModel;
         }
         return false;
     }
@@ -149,7 +152,7 @@ class PDOAdapter implements AdapterInterface
      */
     public function delete($path)
     {
-        return FileStorage::find()->andWhere(['path' => $path])->delete();
+        return FileStorage::find()->andWhere(['path' => $path])->one()->delete();
     }
 
     /**
@@ -161,10 +164,10 @@ class PDOAdapter implements AdapterInterface
 
         if (!empty($dirContents)) {
             foreach ($dirContents as $object) {
-                FileStorage::find()->andWhere(['path' => $object->path])->delete();
+                FileStorage::find()->andWhere(['path' => $object->path])->one()->delete();
             }
         }
-        return FileStorage::find()->andWhere(['path' => $object->path, 'type' => 'dir'])->delete();
+        return FileStorage::find()->andWhere(['path' => $object->path, 'type' => 'dir'])->one()->delete();
     }
 
     /**
@@ -172,13 +175,14 @@ class PDOAdapter implements AdapterInterface
      */
     public function createDir($dirname, Config $config)
     {
-        $statement = $this->pdo->prepare("INSERT INTO {$this->table} (path, type, timestamp) VALUES(:path, :type, :timestamp)");
+        $newModel = new FileStorage();
 
-        $statement->bindParam(':path', $dirname, PDO::PARAM_STR);
-        $statement->bindValue(':type', 'dir', PDO::PARAM_STR);
-        $statement->bindValue(':timestamp', time(), PDO::PARAM_STR);
+        $newModel->path = $dirname;
+        $newModel->type = 'dir';
+        $newModel->timestamp = time();
+        $newModel->save();
 
-        return $statement->execute();
+        return $newModel;
     }
 
     /**
@@ -186,15 +190,7 @@ class PDOAdapter implements AdapterInterface
      */
     public function has($path)
     {
-        $statement = $this->pdo->prepare("SELECT id FROM {$this->table} WHERE path=:path");
-
-        $statement->bindParam(':path', $path, PDO::PARAM_STR);
-
-        if ($statement->execute()) {
-            return (bool)$statement->fetch(PDO::FETCH_ASSOC);
-        }
-
-        return false;
+        return FileStorage::find()->andWhere(['path' => $path])->exists();
     }
 
     /**
@@ -202,15 +198,11 @@ class PDOAdapter implements AdapterInterface
      */
     public function read($path)
     {
-        $statement = $this->pdo->prepare("SELECT contents FROM {$this->table} WHERE path=:path");
-
-        $statement->bindParam(':path', $path, PDO::PARAM_STR);
-
-        if ($statement->execute()) {
-            return $statement->fetch(PDO::FETCH_ASSOC);
-        }
-
-        return false;
+        $model = FileStorage::find()->andWhere(['path' => $path])->one();
+        if ($model)
+            return $model->contents;
+        else
+            return false;
     }
 
     /**
@@ -248,7 +240,7 @@ class PDOAdapter implements AdapterInterface
                 ['LIKE', 'path', $pathPrefix],
             ]);
         }
-        $result = $model->all();
+        $result = $model->asArray()->all();
 
         $result = array_map(function ($v) {
             $v['timestamp'] = (int)$v['timestamp'];
@@ -276,15 +268,11 @@ class PDOAdapter implements AdapterInterface
      */
     public function getMetadata($path)
     {
-        $statement = $this->pdo->prepare("SELECT id, path, size, type, mimetype, timestamp FROM {$this->table} WHERE path=:path");
-
-        $statement->bindParam(':path', $path, PDO::PARAM_STR);
-
-        if ($statement->execute()) {
-            return $statement->fetch(PDO::FETCH_ASSOC);
-        }
-
-        return false;
+        $model = FileStorage::find()->andWhere(['path' => $path])->asArray()->one();
+        if ($model)
+            return $model;
+        else
+            return false;
     }
 
     /**
