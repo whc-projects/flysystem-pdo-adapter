@@ -42,7 +42,7 @@ class PDOAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function write($path, $contents, Config $config)
+    public function write($path, $contents, Config $config = null)
     {
         $size = strlen($contents);
         $type = 'file';
@@ -64,7 +64,7 @@ class PDOAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function writeStream($path, $resource, Config $config)
+    public function writeStream($path, $resource, Config $config = null)
     {
         return $this->write($path, stream_get_contents($resource), $config);
     }
@@ -72,7 +72,7 @@ class PDOAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function update($path, $contents, Config $config)
+    public function update($path, $contents, Config $config = null)
     {
 
         $size = strlen($contents);
@@ -91,7 +91,7 @@ class PDOAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function updateStream($path, $resource, Config $config)
+    public function updateStream($path, $resource, Config $config = null)
     {
         return $this->update($path, stream_get_contents($resource), $config);
     }
@@ -173,7 +173,7 @@ class PDOAdapter implements AdapterInterface
     /**
      * {@inheritdoc}
      */
-    public function createDir($dirname, Config $config)
+    public function createDir($dirname, Config $config = null)
     {
         $newModel = new FileStorage();
 
